@@ -55,6 +55,7 @@ class TevasForm(FlaskForm):
 class VaikasForm(FlaskForm):
     vardas = StringField('Numeris', [DataRequired()])
     pavarde = StringField('Pavardė', [DataRequired()])
+    tevai = QuerySelectMultipleField(query_factory=Tevas.query.all, get_label="vardas", get_pk=get_pk)
     submit = SubmitField('Įvesti')
 
 @app.route("/")
@@ -98,6 +99,9 @@ def new_child():
     forma = VaikasForm()
     if forma.validate_on_submit():
         naujas_vaikas = Vaikas(vardas=forma.vardas.data, pavarde=forma.pavarde.data)
+        for tevas in forma.tevai.data:
+            priskirtas_tevas = Tevas.query.get(tevas.id)
+            naujas_vaikas.tevai.append(priskirtas_tevas)
         db.session.add(naujas_vaikas)
         db.session.commit()
         return redirect(url_for('children'))
